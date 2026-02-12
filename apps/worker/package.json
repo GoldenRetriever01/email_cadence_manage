@@ -1,0 +1,22 @@
+{
+  "name": "@cadence/worker",
+  "version": "1.0.0",
+  "description": "Temporal.io worker for email cadence workflows",
+  "main": "dist/worker.js",
+  "scripts": {
+    "start": "ts-node src/worker.ts",
+    "start:dev": "ts-node-dev --respawn src/worker.ts",
+    "build": "tsc",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@temporal/client": "^1.9.2",
+    "@temporal/worker": "^1.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}
