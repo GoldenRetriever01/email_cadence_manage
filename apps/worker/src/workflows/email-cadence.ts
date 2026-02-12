@@ -3,10 +3,10 @@ import {
   defineSignal,
   defineQuery,
   sleep,
-} from "@temporal/workflow";
+} from "@temporalio/workflow";
 import { CadenceStep, WorkflowInput, WorkflowState } from "../shared/types";
 import { sendEmail } from "../activities/email";
-import type { Connection } from "@temporal/client";
+import type { Connection } from "@temporalio/client";
 
 const activities = proxyActivities<typeof import("../activities/email")>({
   startToCloseTimeout: "10 minutes",

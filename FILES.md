@@ -96,12 +96,12 @@ public/                         Static assets directory
 - `@nestjs/core` – NestJS framework
 - `@nestjs/common` – NestJS utilities
 - `@nestjs/platform-express` – Express integration
-- `@temporal/client` – Temporal workflow client
+- `@temporalio/client` – Temporal workflow client
 - `uuid` – Unique ID generation
 
 ### apps/worker
-- `@temporal/client` – Temporal client library
-- `@temporal/worker` – Temporal worker runtime
+- `@temporalio/client` – Temporal client library
+- `@temporalio/worker` – Temporal worker runtime
 - `ts-node` – TypeScript execution
 - `ts-node-dev` – Development watch mode
 

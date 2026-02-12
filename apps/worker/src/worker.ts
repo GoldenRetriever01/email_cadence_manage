@@ -1,12 +1,10 @@
-import { Worker, NativeConnection } from "@temporal/worker";
+import { Worker, NativeConnection } from "@temporalio/worker";
 import * as emailCadenceWorkflow from "./workflows/email-cadence";
 import * as emailActivities from "./activities/email";
 
 async function runWorker() {
   const connection = await NativeConnection.connect({
-    socketOptions: {
-      address: process.env.TEMPORAL_SERVER_ADDRESS || "localhost:7233",
-    },
+    address: process.env.TEMPORAL_SERVER_ADDRESS || "localhost:7233",
   });
 
   const worker = await Worker.create({

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Connection, WorkflowClient } from "@temporal/client";
+import { Connection, WorkflowClient } from "@temporalio/client";
 import { EnrollmentStatus } from "../shared/types";
 import { v4 as uuidv4 } from "uuid";
 

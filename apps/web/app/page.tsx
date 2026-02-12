@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Cadence, CadenceStep, EnrollmentStatus } from "../types";
-import { createCadence, startEnrollment, getEnrollment, updateCadenceInFlight } from "../lib/api";
+import { Cadence, CadenceStep, EnrollmentStatus } from "../src/types";
+import { createCadence, startEnrollment, getEnrollment, updateCadenceInFlight } from "../src/lib/api";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"cadence" | "enroll" | "monitor">("cadence");
@@ -241,15 +241,7 @@ export default function Home() {
         </div>
       )}
 
-      <style>{`
-        body {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          background: #f5f5f5;
-          margin: 0;
-          padding: 0;
-        }
-      `}</style>
-    </div>
+      </div>
   );
 }
 

@@ -10,8 +10,8 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@temporal/client": "^1.9.2",
-    "@temporal/worker": "^1.9.2"
+    "@temporalio/client": "^1.9.2",
+    "@temporalio/worker": "^1.9.2"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
