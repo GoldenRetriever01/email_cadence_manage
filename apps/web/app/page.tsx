@@ -62,7 +62,7 @@ export default function Home() {
 
     setLoading(true);
     try {
-      const result = await startEnrollment(enrollmentId, contactEmail);
+      const result = await startEnrollment(enrollmentId, contactEmail) as any;
       setEnrollmentStatus(result);
       setMessage("✓ Enrollment started: " + result.id);
       setActiveTab("monitor");
@@ -80,7 +80,7 @@ export default function Home() {
     }
 
     try {
-      const status = await getEnrollment(enrollmentStatus.id);
+      const status = await getEnrollment(enrollmentStatus.id) as any;
       setEnrollmentStatus(status);
       setMessage("✓ Status updated");
     } catch (error) {
@@ -155,7 +155,7 @@ export default function Home() {
           <label>Cadence JSON:</label>
           <textarea
             value={cadenceJson}
-            onChange={(e) => setCadenceJson(e.target.value)}
+            onChange={(e: any) => setCadenceJson(e.target.value)}
             style={styles.textarea}
             rows={15}
           />
@@ -173,7 +173,7 @@ export default function Home() {
             <input
               type="text"
               value={enrollmentId}
-              onChange={(e) => setEnrollmentId(e.target.value)}
+              onChange={(e: any) => setEnrollmentId(e.target.value)}
               placeholder="e.g., cad_welcome"
               style={styles.input}
             />
@@ -183,7 +183,7 @@ export default function Home() {
             <input
               type="email"
               value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
+              onChange={(e: any) => setContactEmail(e.target.value)}
               placeholder="e.g., user@example.com"
               style={styles.input}
             />
@@ -227,7 +227,7 @@ export default function Home() {
               <label>Updated Steps JSON:</label>
               <textarea
                 value={cadenceJson}
-                onChange={(e) => setCadenceJson(e.target.value)}
+                onChange={(e: any) => setCadenceJson(e.target.value)}
                 style={styles.textarea}
                 rows={10}
               />

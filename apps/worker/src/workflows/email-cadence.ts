@@ -3,65 +3,49 @@ import {
   defineSignal,
   defineQuery,
   sleep,
+  condition,
+  setHandler,
 } from "@temporalio/workflow";
 import { CadenceStep, WorkflowInput, WorkflowState } from "../shared/types";
-import { sendEmail } from "../activities/email";
-import type { Connection } from "@temporalio/client";
+import type * as emailActivities from "../activities/email";
+import type * as cadenceActivities from "../activities/cadence";
 
-const activities = proxyActivities<typeof import("../activities/email")>({
-  startToCloseTimeout: "10 minutes",
+const { sendEmail } = proxyActivities<typeof emailActivities>({
+  startToCloseTimeout: "1 minute",
+});
+
+const { fetchCadence } = proxyActivities<typeof cadenceActivities>({
+  startToCloseTimeout: "30 seconds",
 });
 
 const updateCadenceSignal = defineSignal<[CadenceStep[]]>("updateCadence");
 const getStateQuery = defineQuery<WorkflowState>("getState");
 
-// Workflow state
-let currentStepIndex = 0;
-let stepsVersion = 0;
-let status: "RUNNING" | "COMPLETED" | "FAILED" = "RUNNING";
-let steps: CadenceStep[] = [];
-
 export async function emailCadenceWorkflow(input: WorkflowInput): Promise<void> {
-  let cadenceSteps: CadenceStep[] = [];
+  // Workflow state
+  let currentStepIndex = 0;
+  let stepsVersion = 0;
+  let status: "RUNNING" | "COMPLETED" | "FAILED" = "RUNNING";
+  let steps: CadenceStep[] = [];
+  let updateReceived = false;
 
-  // Query the API to get cadence steps
+  // Query the API to get cadence steps via activity
   try {
-    const apiUrl = process.env.API_URL || "http://localhost:3001";
-    const response = await fetch(`${apiUrl}/cadences/${input.cadenceId}`);
-    if (response.ok) {
-      const cadence = await response.json();
-      cadenceSteps = cadence.steps || [];
-    }
+    steps = await fetchCadence(input.cadenceId);
   } catch (error) {
-    console.error("Failed to fetch cadence:", error);
     status = "FAILED";
-    return;
+    throw error;
   }
 
-  steps = cadenceSteps;
-  currentStepIndex = 0;
-  stepsVersion = 0;
-
   // Set up signal handler for cadence updates
-  let updateReceived = false;
-  updateCadenceSignal.onSignal((newSteps: CadenceStep[]) => {
-    const newStepsLength = newSteps.length;
-
-    if (newStepsLength <= currentStepIndex) {
-      // No more steps to execute
-      status = "COMPLETED";
-      updateReceived = false;
-      return;
-    }
-
-    // Update steps and continue from currentStepIndex
+  setHandler(updateCadenceSignal, (newSteps: CadenceStep[]) => {
     steps = newSteps;
     stepsVersion++;
     updateReceived = true;
   });
 
   // Set up query handler
-  getStateQuery.setHandler(() => ({
+  setHandler(getStateQuery, () => ({
     currentStepIndex,
     stepsVersion,
     status,
@@ -70,32 +54,51 @@ export async function emailCadenceWorkflow(input: WorkflowInput): Promise<void> 
   // Execute steps
   while (currentStepIndex < steps.length && status === "RUNNING") {
     const step = steps[currentStepIndex];
+    let stepCompleted = false;
 
     if (step.type === "SEND_EMAIL") {
       try {
-        await activities.sendEmail({
+        await sendEmail({
           enrollmentId: input.enrollmentId,
           contactEmail: input.contactEmail,
           subject: step.subject || "",
           body: step.body || "",
         });
+        stepCompleted = true;
       } catch (error) {
-        console.error("Send email activity failed:", error);
         status = "FAILED";
-        return;
+        throw error;
       }
     } else if (step.type === "WAIT") {
       const seconds = step.seconds || 0;
-      await sleep(seconds * 1000);
+      // Wait for duration OR signal
+      const signaled = await condition(() => updateReceived, seconds * 1000);
+      // If we weren't signaled, the wait completed naturally
+      if (!signaled) {
+        stepCompleted = true;
+      }
+      // If we WERE signaled, stepCompleted remains false, 
+      // so we re-evaluate the same index with the new definition.
     }
 
-    currentStepIndex++;
-
-    // Check if an update was received
     if (updateReceived) {
       updateReceived = false;
-      // Continue from new currentStepIndex with updated steps
+      // If the current step was finished before or during the signal, move to next
+      if (stepCompleted) {
+        currentStepIndex++;
+      }
+      // If stepCompleted is false (e.g. interrupted WAIT), 
+      // we stay at currentStepIndex to re-evaluate.
+      
+      // Ensure we haven't gone out of bounds with the new definition
+      if (currentStepIndex >= steps.length) {
+        break;
+      }
       continue;
+    }
+
+    if (stepCompleted) {
+      currentStepIndex++;
     }
   }
 

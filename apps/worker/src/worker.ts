@@ -1,6 +1,7 @@
 import { Worker, NativeConnection } from "@temporalio/worker";
 import * as emailCadenceWorkflow from "./workflows/email-cadence";
 import * as emailActivities from "./activities/email";
+import * as cadenceActivities from "./activities/cadence";
 
 async function runWorker() {
   const connection = await NativeConnection.connect({
@@ -12,7 +13,7 @@ async function runWorker() {
     namespace: process.env.TEMPORAL_NAMESPACE || "default",
     taskQueue: process.env.TEMPORAL_TASK_QUEUE || "default",
     workflowsPath: require.resolve("./workflows/email-cadence"),
-    activities: emailActivities,
+    activities: { ...emailActivities, ...cadenceActivities },
   });
 
   console.log("Worker started successfully");
